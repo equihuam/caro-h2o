@@ -1,0 +1,186 @@
+---
+title: "Sistematización datos Caro"
+lang: es
+editor_options: 
+  chunk_output_type: console
+format: html
+code-fold: true
+---
+
+## Lectura
+
+Lectura de los datos contenidos en el documento Excel: `Gopheruscoor.xlsx`. Sólo hay que recuperar los datos de las primeras 7 hojas, que contienen los datos. Las demás son resúmenes estadísticos. El proceso es el siguiente.
+
+```{r}
+#| warning: false
+
+library(flextable)
+library(dplyr, warn.conflicts = FALSE)
+library(readxl)
+
+hojas <- excel_sheets("Gopheruscoor.xlsx")[1:7]
+
+datos <- list()
+for(h in hojas)
+{
+  datos[h] <- list(read_excel("Gopheruscoor.xlsx", sheet = h))
+  variables <- lapply(datos, names)
+}
+
+```
+
+## Procesamiento
+
+Ahora, veamos las columnas que tiene cada hoja leída.
+
+```{r}
+for(v in names(variables))
+{
+  length(variables[[v]]) <- length(variables[[1]])
+}
+
+variables <- as_tibble(do.call(cbind, variables))
+
+variables %>%  flextable()
+```
+
+\
+
+Hay dos tipos de subsets. El primero contiene mediciones realizadas en *sitios* (los primeros 4 subsets) y el segundo sobre organismos (los siguientes 3). Los datos de organismos pueden incluir el identificador de la especie registrada (en lugar de la estación), y el resto de las columnas son congruentes con los datos del subset *sitios*. Desafortunadamente, el dato *especie* no se obtuvo para los subsets: *bats* y *bichos*. Sin embargo, pienso que se puede construir la tabla consolidad y registrar esta omisión como *dato faltante*.
+
+Podemos verificar que los subsets 1-4 contenidos el Excel *son congruentes en cuanto a nombres de columnas contenidas* y que son recuperados con exactamente la misma ortografía, con el código que sigue.
+
+```{r}
+#| echo: true
+
+if (identical(variables[[1]], variables[[2]]) & 
+  identical(variables[[1]], variables[[3]]) &
+  identical(variables[[1]], variables[[4]]) & 
+  identical(variables[[2]], variables[[3]]) &
+  identical(variables[[2]], variables[[4]]) &
+  identical(variables[[3]], variables[[4]]))
+    print("VALIDO") else
+    print("INVALIDO") 
+    
+```
+
+### Sitios
+
+Una vez verificado que los subsets *son congruentes*, los podemos consolidar en una sola tabla.
+
+```{r}
+for (i in 1:length(datos))
+{
+  datos[[i]]$dataset <- rep(hojas[i], length(datos[[i]]$SITIO))
+}
+```
+
+Puede verse que las cuatro primeras son comparables, así que las podemos reunir en una sola estructura a la que podemos agregar una columna con el nombre del **dataset**. Veamos como queda eso.
+
+```{r}
+#| label: tbl-1
+#| tbl-cap:  Tablas combinadas para el subconjunto de datos obtenidos en sitios
+
+
+dataset_sitio <- bind_rows(datos[[1]], datos[[2]])
+dataset_sitio <- bind_rows(dataset_sitio, datos[[3]])
+dataset_sitio <- bind_rows(dataset_sitio, datos[[4]])
+
+names(dataset_sitio) <- tolower(names(dataset_sitio))
+
+head(dataset_sitio) %>% 
+  flextable()
+
+```
+
+### Organismos
+
+Para el subset de organismos añadí la variable *especie* para hacer los tres subsets congruentes.
+
+```{r}
+#| label: tbl-2
+#| tbl-cap: Tablas combinadas para el subconjunto de datos obtenidos de organismos
+for(v in names(variables))
+{
+  if (v == "BATS" | v== "BICHOS")
+  {
+    datos[[v]] <- cbind(datos[[v]], ESPECIE = rep(NA, length(datos[[v]]$SITIO)))
+  }
+}
+
+dataset_organismo <- bind_rows(datos[[5]], datos[[6]])
+dataset_organismo <- bind_rows(dataset_organismo, datos[[7]])
+
+names(dataset_organismo) <- tolower(names(dataset_organismo))
+
+head(dataset_organismo) %>% 
+  flextable()
+
+```
+
+## Tareas
+
+Los datos requieren ser descritos con exactitud. Los siguientes son aspectos necesarios a documentar.
+
+-   Necesitamos los datos de localización geográfica de los sitios en grados decimales de longitud y latitud.
+-   Cada columna necesita un explicación metodológica: descripción de lo que se midió, cómo se hizo la determinación, cuando se hizo y la confiabilidad del dato.
+-   Hay algunas columnas que parecen ser de tipo *presencia/ausencia*, también hay qe explicar como se realiza esa asignación con exactitud.
+-   Todo lo anterior se debe organizar como un **diccionario de datos** y será parte clave de los metadatos que habrá que preparar para este *dataset*
+
+## Procesamiento de los datos
+
+```{r}
+
+library(DT)
+
+dataset_sitio %>% 
+  group_by(sitio, temporada) %>% 
+  summarise(hch_m = mean(hch, na.rm = TRUE),
+            hch_s = sum(hch, na.rm = TRUE)) %>% 
+  datatable()
+
+
+
+
+```
+
+# Lectra de los datos de ubicación
+
+```{r}
+suppressPackageStartupMessages({
+  library(ggplot2)
+  library(dplyr)
+  library(sf);
+  library(stringi)
+  })
+
+
+# list the kmz files in a given folder path
+KMZs <- list.files(path=".", pattern="*.kmz", full.names=FALSE)
+
+# desempaca el conttenido del kmz, es unn zipfile
+unzip(zipfile = KMZs[[1]])
+file.rename("doc.kml", "caro.kml")
+
+# check layers first:
+st_layers("caro.kml")
+
+dat_sitio <- st_read("doc.kml")
+
+caro_coords <- data.frame(st_coordinates(dat_sitio)) %>% 
+               select (X, Y) %>% 
+               rename(lng = "X", lat = Y)
+
+
+
+# Ejemplo marcador
+library(leaflet)
+m <- caro_coords %>% 
+     leaflet() %>%
+     addTiles() %>% 
+     addMarkers(popup = dat_sitio$Name) %>% 
+     addProviderTiles(providers$Esri.NatGeoWorldMap) 
+m  # Imprime el mapa
+
+
+```
