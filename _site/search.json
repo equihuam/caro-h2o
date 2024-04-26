@@ -1,0 +1,58 @@
+[
+  {
+    "objectID": "posts/welcome/index.html",
+    "href": "posts/welcome/index.html",
+    "title": "Welcome To My Blog",
+    "section": "",
+    "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "caro-h2o",
+    "section": "",
+    "text": "Sistematización datos Caro\n\n\n\n\n\n\npruebas\n\n\ndatos\n\n\nubica\n\n\n\n\n\n\n\n\n\nApr 25, 2024\n\n\nCarolina y Miguel\n\n\n\n\n\n\n\n\n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\nApr 23, 2024\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this blog"
+  },
+  {
+    "objectID": "posts/2024-04-25-recupera-sitios/index.html",
+    "href": "posts/2024-04-25-recupera-sitios/index.html",
+    "title": "Sistematización datos Caro",
+    "section": "",
+    "text": "Lectura de los datos contenidos en el documento Excel: Gopheruscoor.xlsx. Sólo hay que recuperar los datos de las primeras 7 hojas, que contienen los datos. Las demás son resúmenes estadísticos. El proceso es el siguiente.\n\n\nCódigo\nlibrary(flextable)\nlibrary(dplyr, warn.conflicts = FALSE)\nlibrary(readxl)\n\nhojas &lt;- excel_sheets(\"./datos/Gopheruscoor.xlsx\")[1:7]\n\ndatos &lt;- list()\nfor(h in hojas)\n{\n  datos[h] &lt;- list(read_excel(\"./datos/Gopheruscoor.xlsx\", sheet = h))\n  variables &lt;- lapply(datos, names)\n}"
+  },
+  {
+    "objectID": "posts/2024-04-25-recupera-sitios/index.html#lectura",
+    "href": "posts/2024-04-25-recupera-sitios/index.html#lectura",
+    "title": "Sistematización datos Caro",
+    "section": "",
+    "text": "Lectura de los datos contenidos en el documento Excel: Gopheruscoor.xlsx. Sólo hay que recuperar los datos de las primeras 7 hojas, que contienen los datos. Las demás son resúmenes estadísticos. El proceso es el siguiente.\n\n\nCódigo\nlibrary(flextable)\nlibrary(dplyr, warn.conflicts = FALSE)\nlibrary(readxl)\n\nhojas &lt;- excel_sheets(\"./datos/Gopheruscoor.xlsx\")[1:7]\n\ndatos &lt;- list()\nfor(h in hojas)\n{\n  datos[h] &lt;- list(read_excel(\"./datos/Gopheruscoor.xlsx\", sheet = h))\n  variables &lt;- lapply(datos, names)\n}"
+  },
+  {
+    "objectID": "posts/2024-04-25-recupera-sitios/index.html#procesamiento",
+    "href": "posts/2024-04-25-recupera-sitios/index.html#procesamiento",
+    "title": "Sistematización datos Caro",
+    "section": "Procesamiento",
+    "text": "Procesamiento\nAhora, veamos las columnas que tiene cada hoja leída.\n\n\nCódigo\nfor(v in names(variables))\n{\n  length(variables[[v]]) &lt;- length(variables[[1]])\n}\n\nvariables &lt;- as_tibble(do.call(cbind, variables))\n\nvariables %&gt;%  flextable()\n\n\nAGUACENSEDCENSUELO1MCENSUELO5MCENRANASBATSBICHOSSITIOSITIOSITIOSITIOSITIOSITIOSITIOPAISAJEPAISAJEPAISAJEPAISAJEPAISAJEPAISAJEPAISAJECOBERTURACOBERTURACOBERTURACOBERTURACOBERTURACOBERTURACOBERTURAESTACIONESTACIONESTACIONESTACIONTEMPORADATEMPORADATEMPORADATEMPORADATEMPORADATEMPORADATEMPORADAESPECIEHCHHCHHCHHCHHCHHCHHCHHCHCenHCHCenHCHCenHCHCenHCHCenHCHCenHCHCenHEPTAHEPTAHEPTAHEPTAHEPTAHEPTAHEPTAHEPTACenHEPTACenHEPTACenHEPTACenHEPTACenHEPTACenHEPTACenDRINESDRINESDRINESDRINESDRINESDRINESDRINESDRINESCenDRINESCenDRINESCenDRINESCenDRINESCenDRINESCenDRINESCenENDOSULFANESENDOSULFANESENDOSULFANESENDOSULFANESENDOSULFANESENDOSULFANESENDOSULFANESENDOSULFANESCenENDOSULFANESCenENDOSULFANESCenENDOSULFANESCenENDOSULFANESCenENDOSULFANESCenENDOSULFANESCenDDTDDTDDTDDTDDTDDTDDTDDTCenDDTCenDDTCenDDTCenDDTCenDDTCenDDTCen\n\n\n\n\nHay dos tipos de subsets. El primero contiene mediciones realizadas en sitios (los primeros 4 subsets) y el segundo sobre organismos (los siguientes 3). Los datos de organismos pueden incluir el identificador de la especie registrada (en lugar de la estación), y el resto de las columnas son congruentes con los datos del subset sitios. Desafortunadamente, el dato especie no se obtuvo para los subsets: bats y bichos. Sin embargo, pienso que se puede construir la tabla consolidad y registrar esta omisión como dato faltante.\nPodemos verificar que los subsets 1-4 contenidos el Excel son congruentes en cuanto a nombres de columnas contenidas y que son recuperados con exactamente la misma ortografía, con el código que sigue.\n\n\nCódigo\nif (identical(variables[[1]], variables[[2]]) & \n  identical(variables[[1]], variables[[3]]) &\n  identical(variables[[1]], variables[[4]]) & \n  identical(variables[[2]], variables[[3]]) &\n  identical(variables[[2]], variables[[4]]) &\n  identical(variables[[3]], variables[[4]]))\n    print(\"VALIDO\") else\n    print(\"INVALIDO\") \n\n\n[1] \"VALIDO\"\n\n\n\nSitios\nUna vez verificado que los subsets son congruentes, los podemos consolidar en una sola tabla.\nPuede verse que las cuatro primeras son comparables, así que las podemos reunir en una sola estructura a la que podemos agregar una columna con el nombre del dataset. Veamos como queda eso.\n\n\nCódigo\ndataset_sitio &lt;- bind_rows(datos[[1]], datos[[2]])\ndataset_sitio &lt;- bind_rows(dataset_sitio, datos[[3]])\ndataset_sitio &lt;- bind_rows(dataset_sitio, datos[[4]])\n\nnames(dataset_sitio) &lt;- tolower(names(dataset_sitio))\n\nhead(dataset_sitio) %&gt;% \n  flextable()\n\n\n\n\nTabla 1: Tablas combinadas para el subconjunto de datos obtenidos en sitios\n\n\n\nsitiopaisajecoberturaestaciontemporadahchhchcenheptaheptacendrinesdrinescenendosulfanesendosulfanescenddtddtcendatasetPANTEONT141.956351L0.00012883010.000490012000.000625814000.000202593510.0109035590AGUACENPANTEONT141.956352L0.00057733600.000148075310.000279114000.001141718000.0149045910AGUACENPANTEONT141.956353L0.00012883010.000148075310.000523318000.000202593510.0004005950AGUACENPANTEONT141.956354L0.00019189500.000148075310.000127617310.000202593510.0025413710AGUACENPIXQUIACC47.067281L0.00025821000.000285326000.000407159000.000781827000.0037274000AGUACENPIXQUIACC47.067282L0.00026612200.000394290000.001247137000.000202593510.0016884280AGUACEN\n\n\n\n\n\n\n\nOrganismos\nPara el subset de organismos añadí la variable especie para hacer los tres subsets congruentes.\n\n\nCódigo\nfor(v in names(variables))\n{\n  if (v == \"BATS\" | v== \"BICHOS\")\n  {\n    datos[[v]] &lt;- cbind(datos[[v]], ESPECIE = rep(NA, length(datos[[v]]$SITIO)))\n  }\n}\n\ndataset_organismo &lt;- bind_rows(datos[[5]], datos[[6]])\ndataset_organismo &lt;- bind_rows(dataset_organismo, datos[[7]])\n\nnames(dataset_organismo) &lt;- tolower(names(dataset_organismo))\n\nhead(dataset_organismo) %&gt;% \n  flextable()\n\n\n\n\nTabla 2: Tablas combinadas para el subconjunto de datos obtenidos de organismos\n\n\n\nsitiopaisajecoberturatemporadaespeciehchhchcenheptaheptacendrinesdrinescenendosulfanesendosulfanescenddtddtcendatasetPANTEONT141.9564LE. miotympanum0.00012883179.487743772400.00012761731849.249186570002,215.831467576100RANASPANTEONT141.9564LE. miotympanum2,506.83764946042.015822584200.00012761731282.486481847101,355.462836465680RANASPANTEONT141.9564LE. miotympanum1,090.5019966300.0001480753148.8510606876077.70255772040705.506694367960RANASPANTEONT141.9564LC. taeniopus0.000128831117.626497900300.000127617311.595549188000.000081393321RANASPANTEONT141.9564LC. taeniopus0.00012883159.345963778100.000127617310.000202593510.000081393321RANASPANTEONT141.9564LC. taeniopus0.0001288310.0001480753113.705688351500.000202593510.000081393321RANAS"
+  },
+  {
+    "objectID": "posts/2024-04-25-recupera-sitios/index.html#tareas",
+    "href": "posts/2024-04-25-recupera-sitios/index.html#tareas",
+    "title": "Sistematización datos Caro",
+    "section": "Tareas",
+    "text": "Tareas\nLos datos requieren ser descritos con exactitud. Los siguientes son aspectos necesarios a documentar.\n\nNecesitamos los datos de localización geográfica de los sitios en grados decimales de longitud y latitud.\nCada columna necesita un explicación metodológica: descripción de lo que se midió, cómo se hizo la determinación, cuando se hizo y la confiabilidad del dato.\nHay algunas columnas que parecen ser de tipo presencia/ausencia, también hay qe explicar como se realiza esa asignación con exactitud.\nTodo lo anterior se debe organizar como un diccionario de datos y será parte clave de los metadatos que habrá que preparar para este dataset"
+  },
+  {
+    "objectID": "posts/2024-04-25-recupera-sitios/index.html#procesamiento-de-los-datos",
+    "href": "posts/2024-04-25-recupera-sitios/index.html#procesamiento-de-los-datos",
+    "title": "Sistematización datos Caro",
+    "section": "Procesamiento de los datos",
+    "text": "Procesamiento de los datos\n\n\n`summarise()` has grouped output by 'sitio'. You can override using the\n`.groups` argument."
+  }
+]
